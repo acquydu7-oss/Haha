@@ -1,0 +1,396 @@
+local P,R,U,C,L=game:GetService("Players"),game:GetService("RunService"),game:GetService("UserInputService"),workspace.CurrentCamera,game:GetService("Players").LocalPlayer
+local CR,CB=Color3.fromRGB(220,0,30),Color3.fromRGB(180,20,30)
+local DK,DK2,DK3,TX=Color3.fromRGB(18,5,8),Color3.fromRGB(30,8,12),Color3.fromRGB(42,12,18),Color3.fromRGB(255,180,190)
+
+-- Parent CoreGui (z-index cao hơn topbar) — nếu fail fallback PlayerGui
+pcall(function()local o=game:GetService("CoreGui"):FindFirstChild("HV3")if o then o:Destroy()end end)
+local pg=L:WaitForChild("PlayerGui")
+pcall(function()local o=pg:FindFirstChild("HV3")if o then o:Destroy()end end)
+local S=Instance.new("ScreenGui")S.Name="HV3"S.ResetOnSpawn=false S.IgnoreGuiInset=true S.DisplayOrder=999 S.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+local okCore=pcall(function()S.Parent=game:GetService("CoreGui")end)
+if not okCore or not S.Parent then S.Parent=pg end
+
+local function cn(p,r)Instance.new("UICorner",p).CornerRadius=r or UDim.new(0,12)end
+local function st(p,c,t)local s=Instance.new("UIStroke",p)s.Color=c s.Thickness=t or 1 end
+local function tp(pos)local c=L.Character if not c then return end local h=c:FindFirstChild("HumanoidRootPart")if not h then return end pcall(function()h:SetNetworkOwner(L)end)pcall(function()c:PivotTo(CFrame.new(pos))end)pcall(function()h.CFrame=CFrame.new(pos)end)end
+
+local St={F=false,N=false,N2=false,X=false,A=false,IJ=false,ESP=false,BoxESP=false,SP=false,JP=false,up=false,dn=false,AntiFling=false,Flash=false,_af=nil,_flConn=nil}
+local FS,SPD,FLYSPD=200,100,60
+local fc,fv,fg,ac,aimT
+local esps={}
+local boxObjs={}
+local flashPart=nil
+local flashLight=nil
+
+task.spawn(function()while task.wait(.1)do local c=L.Character if c then local h=c:FindFirstChildOfClass("Humanoid")if h then if St.SP and h.WalkSpeed~=SPD then h.WalkSpeed=SPD end if St.JP and h.JumpPower~=100 then h.JumpPower=100 end end end end end)
+task.spawn(function()while task.wait(.3)do if St.N and workspace.Gravity~=50 then workspace.Gravity=50 end end end)
+
+local function sF()
+    local c=L.Character if not c then return end
+    local h,m=c:FindFirstChild("HumanoidRootPart"),c:FindFirstChildOfClass("Humanoid")
+    if not h or not m then return end
+    pcall(function()h:SetNetworkOwner(L)end)m.PlatformStand=false m.WalkSpeed=0 m.AutoRotate=false
+    if fv then fv:Destroy()end if fg then fg:Destroy()end
+    fv=Instance.new("BodyVelocity",h)fv.MaxForce=Vector3.new(9e9,9e9,9e9)fv.P=1250 fv.Velocity=Vector3.zero
+    fg=Instance.new("BodyGyro",h)fg.MaxTorque=Vector3.new(9e9,9e9,9e9)fg.P=9e4 fg.D=50 fg.CFrame=h.CFrame
+    fc=R.RenderStepped:Connect(function()
+        if not St.F then return end
+        local c2=L.Character if not c2 then return end
+        local r,hm=c2:FindFirstChild("HumanoidRootPart"),c2:FindFirstChildOfClass("Humanoid")
+        if not r or not fv or not fg or not hm then return end
+        local hz=hm.MoveDirection*FLYSPD local y=0
+        if St.up or U:IsKeyDown(Enum.KeyCode.Space)then y=FLYSPD end
+        if St.dn or U:IsKeyDown(Enum.KeyCode.LeftControl)then y=-FLYSPD end
+        fv.Velocity=Vector3.new(hz.X,y,hz.Z)fg.CFrame=CFrame.new(r.Position,r.Position+C.CFrame.LookVector)
+    end)
+end
+local function stF()
+    if fc then fc:Disconnect()end if fv then fv:Destroy()end if fg then fg:Destroy()end
+    St.up=false St.dn=false
+    local m=L.Character and L.Character:FindFirstChildOfClass("Humanoid")
+    if m then m.PlatformStand=false m.WalkSpeed=16 m.AutoRotate=true end
+end
+local function xr()for _,o in pairs(workspace:GetDescendants())do if o:IsA("BasePart")and not o:IsDescendantOf(L.Character or workspace)then if St.X then if not o:GetAttribute("oT")then o:SetAttribute("oT",o.Transparency)o:SetAttribute("oM",o.Material.Name)end o.Transparency=.7 o.Material=Enum.Material.SmoothPlastic elseif o:GetAttribute("oT")then o.Transparency=o:GetAttribute("oT")pcall(function()o.Material=Enum.Material[o:GetAttribute("oM")]end)end end end end
+
+local function clrE()for _,d in pairs(esps)do pcall(function()if d.hl then d.hl:Destroy()end if d.rg then d.rg:Destroy()end end)end esps={}end
+local function addE(p)
+    if not p or p==L or not p.Character then return end
+    local c=p.Character
+    if esps[p]then pcall(function()if esps[p].hl then esps[p].hl:Destroy()end if esps[p].rg then esps[p].rg:Destroy()end end)esps[p]=nil end
+    local d={}
+    local ok,hl=pcall(function()local h=Instance.new("Highlight")h.FillColor=CR h.OutlineColor=Color3.new(1,1,1)h.FillTransparency=.6 h.OutlineTransparency=0 h.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop h.Adornee=c h.Parent=c return h end)
+    if ok then d.hl=hl end
+    local hrp=c:FindFirstChild("HumanoidRootPart")
+    if hrp then local r=Instance.new("Part")r.Shape=Enum.PartType.Cylinder r.Size=Vector3.new(.1,6,6)r.Anchored=true r.CanCollide=false r.CanQuery=false r.Material=Enum.Material.Neon r.Color=CR r.Transparency=.3 r.CFrame=CFrame.new(hrp.Position-Vector3.new(0,2.8,0))*CFrame.Angles(0,0,math.rad(90))r.Parent=workspace d.rg=r end
+    esps[p]=d
+end
+local function upE()
+    if not St.ESP then return end
+    for _,p in pairs(P:GetPlayers())do if p~=L and p.Character then local d=esps[p]if not d or not d.hl or not d.hl.Parent or d.hl.Adornee~=p.Character or(d.rg and not d.rg.Parent)then addE(p)end local dd=esps[p]if dd and dd.rg and dd.rg.Parent then local h=p.Character:FindFirstChild("HumanoidRootPart")if h then dd.rg.CFrame=CFrame.new(h.Position-Vector3.new(0,2.8,0))*CFrame.Angles(0,0,math.rad(90))dd.rg.Transparency=.3+math.abs(math.sin(tick()*3))*.4 end end end end
+    for pl,d in pairs(esps)do if not pl.Parent or not pl.Character then pcall(function()if d.hl then d.hl:Destroy()end if d.rg then d.rg:Destroy()end end)esps[pl]=nil end end
+end
+P.PlayerAdded:Connect(function(p)p.CharacterAdded:Connect(function()task.wait(.6)if St.ESP then addE(p)end end)end)
+for _,p in pairs(P:GetPlayers())do if p~=L then p.CharacterAdded:Connect(function()task.wait(.6)if St.ESP then addE(p)end end)end end
+
+-- ESP BOX + LINE
+local function clrBox()for _,d in pairs(boxObjs)do pcall(function()if d.box then d.box:Destroy()end if d.line then d.line:Destroy()end end)end boxObjs={}end
+local function addBox(p)
+    if not p or p==L or not p.Character then return end
+    local char=p.Character
+    if boxObjs[p]then pcall(function()if boxObjs[p].box then boxObjs[p].box:Destroy()end if boxObjs[p].line then boxObjs[p].line:Destroy()end end)boxObjs[p]=nil end
+    local d={}
+    local ok,box=pcall(function()local b=Instance.new("SelectionBox")b.Adornee=char b.LineThickness=.05 b.Color3=CR b.SurfaceColor3=Color3.fromRGB(0,0,0)b.SurfaceTransparency=1 b.Parent=char return b end)
+    if ok then d.box=box end
+    local ok2,line=pcall(function()local l=Instance.new("Part")l.Anchored=true l.CanCollide=false l.CanQuery=false l.CanTouch=false l.Material=Enum.Material.Neon l.Color=CR l.Transparency=.2 l.Size=Vector3.new(.15,.15,1)l.Parent=workspace return l end)
+    if ok2 then d.line=line end
+    boxObjs[p]=d
+end
+local function upBox()
+    if not St.BoxESP then return end
+    for _,p in pairs(P:GetPlayers())do
+        if p~=L and p.Character then
+            local d=boxObjs[p]
+            if not d or not d.box or not d.box.Parent or d.box.Adornee~=p.Character then addBox(p)end
+            local dd=boxObjs[p]
+            if dd and dd.line and dd.line.Parent then
+                local hrp=p.Character:FindFirstChild("HumanoidRootPart")
+                local mHRP=L.Character and L.Character:FindFirstChild("HumanoidRootPart")
+                if hrp and mHRP then
+                    local from=mHRP.Position
+                    local to=hrp.Position
+                    local mid=(from+to)/2
+                    local dist=(to-from).Magnitude
+                    dd.line.Size=Vector3.new(.15,.15,dist)
+                    dd.line.CFrame=CFrame.lookAt(mid,to)
+                end
+            end
+        end
+    end
+    for pl,d in pairs(boxObjs)do if not pl.Parent or not pl.Character then pcall(function()if d.box then d.box:Destroy()end if d.line then d.line:Destroy()end end)boxObjs[pl]=nil end end
+end
+P.PlayerAdded:Connect(function(p)p.CharacterAdded:Connect(function()task.wait(.6)if St.BoxESP then addBox(p)end end)end)
+R.RenderStepped:Connect(upBox)
+
+-- FLASHLIGHT (đứng yên trong tay)
+local function buildFlash()
+    local c=L.Character if not c then return end
+    local hand=c:FindFirstChild("RightHand")or c:FindFirstChild("Right Arm")
+    if not hand then return end
+    if flashPart then flashPart:Destroy()end
+    if flashLight then flashLight:Destroy()end
+    flashPart=Instance.new("Part")
+    flashPart.Name="HV3_Flash"
+    flashPart.Size=Vector3.new(.4,.4,1.2)
+    flashPart.Transparency=.4
+    flashPart.CanCollide=false
+    flashPart.CanQuery=false
+    flashPart.CanTouch=false
+    flashPart.Massless=true
+    flashPart.Anchored=false
+    flashPart.Material=Enum.Material.Metal
+    flashPart.Color=Color3.fromRGB(40,40,40)
+    flashPart.Parent=c
+    local weld=Instance.new("Weld")
+    weld.Part0=hand
+    weld.Part1=flashPart
+    weld.C0=CFrame.new(0,-0.5,-0.5)*CFrame.Angles(math.rad(-90),0,0)
+    weld.Parent=flashPart
+    flashLight=Instance.new("SpotLight")
+    flashLight.Name="HV3_SpotLight"
+    flashLight.Brightness=5
+    flashLight.Range=100
+    flashLight.Angle=50
+    flashLight.Face=Enum.NormalId.Front
+    flashLight.Color=Color3.fromRGB(255,240,200)
+    flashLight.Shadows=true
+    flashLight.Parent=flashPart
+end
+local function killFlash()
+    if flashLight then flashLight:Destroy()flashLight=nil end
+    if flashPart then flashPart:Destroy()flashPart=nil end
+    if St._flConn then St._flConn:Disconnect()St._flConn=nil end
+end
+
+L.CharacterAdded:Connect(function()task.wait(1)if St.F then sF()end if St.ESP then clrE()upE()end if St.BoxESP then clrBox()upBox()end if St.Flash then buildFlash()end end)
+
+local function gt()
+    local cl,sh=nil,FS/2 local cx,cy=C.ViewportSize.X/2,C.ViewportSize.Y/2
+    for _,p in pairs(P:GetPlayers())do if p~=L and p.Character then local h=p.Character:FindFirstChildOfClass("Humanoid")if h and h.Health>0 then local pt=p.Character:FindFirstChild("Head")or p.Character:FindFirstChild("HumanoidRootPart")if pt then local sp,on=C:WorldToViewportPoint(pt.Position)if on and sp.Z>0 then local d=math.sqrt((sp.X-cx)^2+(sp.Y-cy)^2)if d<sh then sh=d cl=pt end end end end end end
+    return cl
+end
+local function gTP()local bp=L:FindFirstChild("Backpack")if not bp then return end for _,o in ipairs(bp:GetChildren())do if o.Name=="TP Tool"then o:Destroy()end end if L.Character then for _,o in ipairs(L.Character:GetChildren())do if o.Name=="TP Tool"then o:Destroy()end end end local t=Instance.new("Tool")t.Name="TP Tool"t.RequiresHandle=false t.CanBeDropped=false t.Parent=bp t.Activated:Connect(function()local m=L:GetMouse()if m and m.Hit then tp(m.Hit.Position+Vector3.new(0,3,0))end end)end
+local function rTP()local bp=L:FindFirstChild("Backpack")if bp then for _,o in ipairs(bp:GetChildren())do if o.Name=="TP Tool"then o:Destroy()end end end if L.Character then for _,o in ipairs(L.Character:GetChildren())do if o.Name=="TP Tool"then o:Destroy()end end end end
+
+-- UI
+local I=Instance.new("TextButton",S)I.Size=UDim2.new(0,55,0,55)I.Position=UDim2.new(0,15,0,80)I.BackgroundColor3=DK I.Text="C"I.TextColor3=CR I.TextSize=26 I.Font=Enum.Font.GothamBlack I.Draggable=true I.ZIndex=100 I.AutoButtonColor=false cn(I,UDim.new(1,0))st(I,CR,2)
+local M=Instance.new("Frame",S)M.Size=UDim2.new(0,620,0,360)M.Position=UDim2.new(.5,-310,0,50)M.BackgroundColor3=DK M.BorderSizePixel=0 M.Active=true M.Draggable=true M.ZIndex=50 cn(M,UDim.new(0,16))st(M,Color3.fromRGB(80,10,20),1.5)
+local H=Instance.new("Frame",M)H.Size=UDim2.new(1,0,0,52)H.BackgroundColor3=DK2 H.BorderSizePixel=0 H.ZIndex=51 cn(H,UDim.new(0,16))
+local gr=Instance.new("UIGradient",H)gr.Color=ColorSequence.new(Color3.fromRGB(180,10,30),Color3.fromRGB(50,0,60))gr.Rotation=45
+local T=Instance.new("TextLabel",H)T.BackgroundTransparency=1 T.Size=UDim2.new(0,300,1,0)T.Position=UDim2.new(0,15,0,0)T.Font=Enum.Font.GothamBlack T.Text="🦸 HERO V3"T.TextColor3=CR T.TextSize=18 T.TextXAlignment=Enum.TextXAlignment.Left T.ZIndex=53
+local function hb(t,x,c)local b=Instance.new("TextButton",H)b.Size=UDim2.new(0,32,0,32)b.Position=UDim2.new(1,x,.5,-16)b.BackgroundColor3=c b.Text=t b.TextColor3=Color3.new(1,1,1)b.Font=Enum.Font.GothamBold b.TextSize=14 b.ZIndex=53 b.AutoButtonColor=false cn(b,UDim.new(0,8))return b end
+local MB,CBt=hb("—",-90,Color3.fromRGB(60,60,60)),hb("✕",-52,CB)
+local SB=Instance.new("Frame",M)SB.Size=UDim2.new(0,180,1,-75)SB.Position=UDim2.new(0,10,0,62)SB.BackgroundColor3=DK2 SB.BorderSizePixel=0 SB.ZIndex=51 cn(SB,UDim.new(0,12))
+local TBC=Instance.new("Frame",SB)TBC.Size=UDim2.new(1,-16,0,0)TBC.Position=UDim2.new(0,8,0,8)TBC.BackgroundTransparency=1 TBC.ZIndex=52
+Instance.new("UIListLayout",TBC).Padding=UDim.new(0,6)
+local CA=Instance.new("Frame",M)CA.Size=UDim2.new(1,-210,1,-75)CA.Position=UDim2.new(0,200,0,62)CA.BackgroundColor3=DK2 CA.BackgroundTransparency=.4 CA.BorderSizePixel=0 CA.ZIndex=51 cn(CA,UDim.new(0,12))
+local tabs,pages={},{}
+local TN={"👤  Người chơi","🔧  Công cụ","🎯  Mục tiêu","📍  Dịch chuyển"}
+for i=1,4 do
+    local p=Instance.new("ScrollingFrame",CA)p.Size=UDim2.new(1,-10,1,-10)p.Position=UDim2.new(0,5,0,5)p.BackgroundTransparency=1 p.BorderSizePixel=0 p.ScrollBarThickness=4 p.ScrollBarImageColor3=CR p.CanvasSize=UDim2.new(0,0,0,2000)p.Visible=(i==1)p.ZIndex=52
+    Instance.new("UIListLayout",p).Padding=UDim.new(0,8)pages[i]=p
+    local b=Instance.new("TextButton",TBC)b.Size=UDim2.new(1,0,0,42)b.BackgroundColor3=DK3 b.BackgroundTransparency=(i==1)and .3 or 1 b.Text=""b.AutoButtonColor=false b.LayoutOrder=i b.ZIndex=53 cn(b,UDim.new(0,10))
+    local t=Instance.new("TextLabel",b)t.BackgroundTransparency=1 t.Size=UDim2.new(1,-10,1,0)t.Position=UDim2.new(0,12,0,0)t.Font=Enum.Font.GothamMedium t.Text=TN[i]t.TextColor3=TX t.TextSize=13 t.TextXAlignment=Enum.TextXAlignment.Left t.ZIndex=54
+    b.MouseButton1Click:Connect(function()for a,x in ipairs(tabs)do x.BackgroundTransparency=(a==i)and .3 or 1 end for a,x in ipairs(pages)do x.Visible=(a==i)end end)
+    tabs[i]=b
+end
+local function tk(par,lbl,cb)
+    local r=Instance.new("Frame",par)r.Size=UDim2.new(1,-10,0,52)r.BackgroundColor3=DK3 r.BorderSizePixel=0 r.LayoutOrder=#par:GetChildren()r.ZIndex=53 cn(r,UDim.new(0,12))
+    local l=Instance.new("TextLabel",r)l.BackgroundTransparency=1 l.Size=UDim2.new(.6,0,1,0)l.Position=UDim2.new(0,18,0,0)l.Font=Enum.Font.GothamMedium l.Text=lbl l.TextColor3=TX l.TextSize=14 l.TextXAlignment=Enum.TextXAlignment.Left l.ZIndex=54
+    local v=Instance.new("TextLabel",r)v.BackgroundTransparency=1 v.Size=UDim2.new(0,50,1,0)v.Position=UDim2.new(1,-105,0,0)v.Font=Enum.Font.GothamBold v.Text="OFF"v.TextColor3=TX v.TextSize=14 v.ZIndex=54
+    local sw=Instance.new("TextButton",r)sw.Size=UDim2.new(0,44,0,24)sw.Position=UDim2.new(1,-60,.5,-12)sw.BackgroundColor3=Color3.fromRGB(60,25,30)sw.Text=""sw.AutoButtonColor=false sw.ZIndex=54 cn(sw,UDim.new(1,0))
+    local k=Instance.new("Frame",sw)k.Size=UDim2.new(0,18,0,18)k.Position=UDim2.new(0,3,.5,-9)k.BackgroundColor3=Color3.new(1,1,1)k.BorderSizePixel=0 k.ZIndex=55 cn(k,UDim.new(1,0))
+    local s=false
+    sw.MouseButton1Click:Connect(function()s=not s k:TweenPosition(s and UDim2.new(1,-21,.5,-9)or UDim2.new(0,3,.5,-9),"Out","Quad",.2)sw.BackgroundColor3=s and CR or Color3.fromRGB(60,25,30)v.Text=s and"ON"or"OFF"v.TextColor3=s and CR or TX if cb then cb(s)end end)
+end
+local function sl(par,lbl,init,mn,mx,cb)
+    local r=Instance.new("Frame",par)r.Size=UDim2.new(1,-10,0,60)r.BackgroundColor3=DK3 r.BorderSizePixel=0 r.LayoutOrder=#par:GetChildren()r.ZIndex=53 cn(r,UDim.new(0,12))
+    local l=Instance.new("TextLabel",r)l.BackgroundTransparency=1 l.Size=UDim2.new(.6,0,0,22)l.Position=UDim2.new(0,18,0,4)l.Font=Enum.Font.GothamMedium l.Text=lbl l.TextColor3=TX l.TextSize=13 l.TextXAlignment=Enum.TextXAlignment.Left l.ZIndex=54
+    local v=Instance.new("TextLabel",r)v.BackgroundTransparency=1 v.Size=UDim2.new(0,60,0,22)v.Position=UDim2.new(1,-70,0,4)v.Font=Enum.Font.GothamBold v.Text=tostring(init)v.TextColor3=CR v.TextSize=13 v.ZIndex=54
+    local bar=Instance.new("Frame",r)bar.Size=UDim2.new(1,-36,0,8)bar.Position=UDim2.new(0,18,0,36)bar.BackgroundColor3=Color3.fromRGB(60,25,30)bar.BorderSizePixel=0 bar.ZIndex=54 cn(bar,UDim.new(1,0))
+    local fl=Instance.new("Frame",bar)fl.Size=UDim2.new((init-mn)/(mx-mn),0,1,0)fl.BackgroundColor3=CR fl.BorderSizePixel=0 fl.ZIndex=55 cn(fl,UDim.new(1,0))
+    local dr=false
+    local function up(x)local rl=math.clamp((x-bar.AbsolutePosition.X)/bar.AbsoluteSize.X,0,1)local vl=math.floor(mn+rl*(mx-mn))fl.Size=UDim2.new(rl,0,1,0)v.Text=tostring(vl)if cb then cb(vl)end end
+    bar.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dr=true up(i.Position.X)end end)
+    U.InputChanged:Connect(function(i)if dr and(i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then up(i.Position.X)end end)
+    U.InputEnded:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dr=false end end)
+end
+
+local ctrl=Instance.new("Frame",S)ctrl.Size=UDim2.new(0,70,0,150)ctrl.Position=UDim2.new(1,-90,.4,0)ctrl.BackgroundTransparency=1 ctrl.Visible=false ctrl.ZIndex=100
+local cl=Instance.new("UIListLayout",ctrl)cl.Padding=UDim.new(0,10)cl.HorizontalAlignment=Enum.HorizontalAlignment.Center
+local function mkf(t)local b=Instance.new("TextButton",ctrl)b.Size=UDim2.new(0,60,0,60)b.BackgroundColor3=DK b.BackgroundTransparency=.2 b.Text=t b.TextColor3=CR b.TextSize=30 b.Font=Enum.Font.GothamBlack b.AutoButtonColor=false b.ZIndex=101 cn(b,UDim.new(1,0))st(b,CR,2)return b end
+local FU,FD=mkf("▲"),mkf("▼")
+FU.MouseButton1Down:Connect(function()St.up=true end)FU.MouseButton1Up:Connect(function()St.up=false end)FU.MouseLeave:Connect(function()St.up=false end)
+FD.MouseButton1Down:Connect(function()St.dn=true end)FD.MouseButton1Up:Connect(function()St.dn=false end)FD.MouseLeave:Connect(function()St.dn=false end)
+local fbs=false task.spawn(function()while task.wait(.2)do if St.F~=fbs then ctrl.Visible=St.F fbs=St.F end end end)
+local F=Instance.new("Frame",S)F.AnchorPoint=Vector2.new(.5,.5)F.BackgroundTransparency=1 F.Size=UDim2.new(0,FS,0,FS)F.Position=UDim2.new(.5,0,.5,0)F.Visible=false F.ZIndex=999 cn(F,UDim.new(1,0))st(F,CR,2)
+
+-- TAB 1
+tk(pages[1],"Tốc độ chạy",function(s)St.SP=s local h=L.Character and L.Character:FindFirstChildOfClass("Humanoid")if h then h.WalkSpeed=s and SPD or 16 end end)
+sl(pages[1],"Speed Value",SPD,16,500,function(v)SPD=v if St.SP then local h=L.Character and L.Character:FindFirstChildOfClass("Humanoid")if h then h.WalkSpeed=v end end end)
+tk(pages[1],"Bay (Mobile)",function(s)St.F=s if s then sF()else stF()end end)
+sl(pages[1],"Fly Speed",FLYSPD,20,300,function(v)FLYSPD=v end)
+tk(pages[1],"Lực nhảy",function(s)St.JP=s local h=L.Character and L.Character:FindFirstChildOfClass("Humanoid")if h then h.JumpPower=s and 100 or 50 end end)
+tk(pages[1],"Trọng lực thấp",function(s)St.N=s if not s then workspace.Gravity=196.2 end end)
+tk(pages[1],"Xuyên tường",function(s)St.N2=s end)
+R.Stepped:Connect(function()if St.N2 and L.Character then for _,p in pairs(L.Character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=false end end end end)
+
+-- TAB 2
+tk(pages[2],"X-Ray",function(s)St.X=s xr()end)
+tk(pages[2],"Full Bright",function(s)local l=game:GetService("Lighting")l.Brightness=s and 3 or 2 l.Ambient=s and Color3.fromRGB(200,200,200)or Color3.fromRGB(70,70,70)end)
+tk(pages[2],"Infinite Jump",function(s)St.IJ=s end)
+U.JumpRequest:Connect(function()if St.IJ then local c=L.Character if c then local h=c:FindFirstChildOfClass("Humanoid")if h then h:ChangeState(Enum.HumanoidStateType.Jumping)end end end end)
+tk(pages[2],"Anti-Fling",function(s)
+    St.AntiFling=s
+    if s then
+        if not St._af then St._af=R.Heartbeat:Connect(function()
+            if not St.AntiFling then return end
+            local c=L.Character if not c then return end
+            local h=c:FindFirstChild("HumanoidRootPart")if not h then return end
+            local rx,_,rz=h.CFrame:ToEulerAnglesYXZ()
+            if math.abs(rx)>math.rad(80)or math.abs(rz)>math.rad(80)then local p=h.Position h.CFrame=CFrame.new(p)end
+            h.AssemblyAngularVelocity=Vector3.zero
+            h.AssemblyLinearVelocity=Vector3.new(math.clamp(h.AssemblyLinearVelocity.X,-100,100),math.clamp(h.AssemblyLinearVelocity.Y,-300,300),math.clamp(h.AssemblyLinearVelocity.Z,-100,100))
+        end)end
+    elseif St._af then St._af:Disconnect()St._af=nil end
+end)
+tk(pages[2],"TP All về mình",function(s)if s then
+    local m=L.Character and L.Character:FindFirstChild("HumanoidRootPart")if not m then return end
+    local pl={}for _,p in ipairs(P:GetPlayers())do if p~=L and p.Character then table.insert(pl,p)end end
+    for i,p in ipairs(pl)do local h=p.Character:FindFirstChild("HumanoidRootPart")if h then local a=(i/#pl)*math.pi*2 pcall(function()p.Character:PivotTo(CFrame.new(m.Position+Vector3.new(math.cos(a)*5,3,math.sin(a)*5)))end)end end
+end end)
+
+tk(pages[2],"🔦 Đèn Pin (cầm tay)",function(s)
+    St.Flash=s
+    if s then buildFlash()else killFlash()end
+end)
+
+-- SUNSET
+local so={}
+local function enSS()
+    for _,o in ipairs(so)do pcall(function()o:Destroy()end)end so={}
+    local Lg=game:GetService("Lighting")
+    if not Lg:GetAttribute("oSv")then Lg:SetAttribute("oSv",true)Lg:SetAttribute("oB",Lg.Brightness)Lg:SetAttribute("oA",Lg.Ambient)Lg:SetAttribute("oO",Lg.OutdoorAmbient)Lg:SetAttribute("oC",Lg.ClockTime)end
+    Lg.Brightness=2.5 Lg.Ambient=Color3.fromRGB(180,90,50)Lg.OutdoorAmbient=Color3.fromRGB(220,120,60)Lg.ClockTime=17.2
+    local cc=Instance.new("ColorCorrectionEffect",Lg)cc.Brightness=.08 cc.Contrast=.18 cc.Saturation=.35 cc.TintColor=Color3.fromRGB(255,190,130)table.insert(so,cc)
+    local bl=Instance.new("BloomEffect",Lg)bl.Intensity=.9 bl.Size=28 bl.Threshold=.85 table.insert(so,bl)
+    local sr=Instance.new("SunRaysEffect",Lg)sr.Intensity=.15 sr.Spread=.95 table.insert(so,sr)
+    local at=Instance.new("Atmosphere",Lg)at.Density=.35 at.Offset=.15 at.Color=Color3.fromRGB(255,180,120)at.Decay=Color3.fromRGB(180,80,50)table.insert(so,at)
+    local sky=Instance.new("Sky",Lg)sky.SkyboxBk="rbxassetid://159454299"sky.SkyboxDn="rbxassetid://159454296"sky.SkyboxFt="rbxassetid://159454293"sky.SkyboxLf="rbxassetid://159454286"sky.SkyboxRt="rbxassetid://159454300"sky.SkyboxUp="rbxassetid://159454288"sky.SunAngularSize=20 sky.MoonAngularSize=0 table.insert(so,sky)
+end
+local function diSS()
+    for _,o in ipairs(so)do pcall(function()o:Destroy()end)end so={}
+    local Lg=game:GetService("Lighting")
+    if Lg:GetAttribute("oSv")then Lg.Brightness=Lg:GetAttribute("oB")or 2 Lg.Ambient=Lg:GetAttribute("oA")or Color3.fromRGB(70,70,70)Lg.OutdoorAmbient=Lg:GetAttribute("oO")or Color3.fromRGB(128,128,128)Lg.ClockTime=Lg:GetAttribute("oC")or 14 Lg:SetAttribute("oSv",nil)end
+end
+tk(pages[2],"🌅 Sunset Shader",function(s)if s then enSS()else diSS()end end)
+
+-- DARK TWILIGHT
+local darkObjs={}
+local function enDark()
+    for _,o in ipairs(darkObjs)do pcall(function()o:Destroy()end)end darkObjs={}
+    local Lg=game:GetService("Lighting")
+    if not Lg:GetAttribute("oDSv")then Lg:SetAttribute("oDSv",true)Lg:SetAttribute("oDB",Lg.Brightness)Lg:SetAttribute("oDA",Lg.Ambient)Lg:SetAttribute("oDO",Lg.OutdoorAmbient)Lg:SetAttribute("oDC",Lg.ClockTime)Lg:SetAttribute("oDF",Lg.FogEnd)Lg:SetAttribute("oDFC",Lg.FogColor)end
+    Lg.Brightness=1.1 Lg.Ambient=Color3.fromRGB(45,40,55)Lg.OutdoorAmbient=Color3.fromRGB(70,55,60)Lg.ClockTime=18.6 Lg.GeographicLatitude=25 Lg.EnvironmentDiffuseScale=.3 Lg.EnvironmentSpecularScale=.3 Lg.GlobalShadows=true Lg.ShadowSoftness=.45 Lg.FogEnd=800 Lg.FogStart=100 Lg.FogColor=Color3.fromRGB(60,55,70)
+    local cc=Instance.new("ColorCorrectionEffect",Lg)cc.Brightness=-.08 cc.Contrast=.32 cc.Saturation=-.25 cc.TintColor=Color3.fromRGB(220,210,225)table.insert(darkObjs,cc)
+    local bl=Instance.new("BloomEffect",Lg)bl.Intensity=.35 bl.Size=24 bl.Threshold=1.1 table.insert(darkObjs,bl)
+    local br=Instance.new("BlurEffect",Lg)br.Size=2 table.insert(darkObjs,br)
+    local at=Instance.new("Atmosphere",Lg)at.Density=.38 at.Offset=.1 at.Color=Color3.fromRGB(90,80,100)at.Decay=Color3.fromRGB(180,120,100)at.Glare=.3 at.Haze=1.8 table.insert(darkObjs,at)
+    local sky=Instance.new("Sky",Lg)
+    sky.SkyboxBk="rbxassetid://159454299"sky.SkyboxDn="rbxassetid://159454296"sky.SkyboxFt="rbxassetid://159454293"sky.SkyboxLf="rbxassetid://159454286"sky.SkyboxRt="rbxassetid://159454300"sky.SkyboxUp="rbxassetid://159454288"
+    sky.SunAngularSize=14 sky.MoonAngularSize=8 sky.StarCount=3000 sky.CelestialBodiesShown=true
+    table.insert(darkObjs,sky)
+end
+local function diDark()
+    for _,o in ipairs(darkObjs)do pcall(function()o:Destroy()end)end darkObjs={}
+    local Lg=game:GetService("Lighting")
+    if Lg:GetAttribute("oDSv")then Lg.Brightness=Lg:GetAttribute("oDB")or 2 Lg.Ambient=Lg:GetAttribute("oDA")or Color3.fromRGB(70,70,70)Lg.OutdoorAmbient=Lg:GetAttribute("oDO")or Color3.fromRGB(128,128,128)Lg.ClockTime=Lg:GetAttribute("oDC")or 14 Lg.FogEnd=Lg:GetAttribute("oDF")or 100000 Lg.FogColor=Lg:GetAttribute("oDFC")or Color3.fromRGB(192,192,192)Lg:SetAttribute("oDSv",nil)end
+end
+tk(pages[2],"🌑 Shader Âm U",function(s)if s then enDark()else diDark()end end)
+
+-- STORM
+local stormObjs={}
+local function enStorm()
+    for _,o in ipairs(stormObjs)do pcall(function()o:Destroy()end)end stormObjs={}
+    local Lg=game:GetService("Lighting")
+    if not Lg:GetAttribute("oStSv")then Lg:SetAttribute("oStSv",true)Lg:SetAttribute("oStB",Lg.Brightness)Lg:SetAttribute("oStA",Lg.Ambient)Lg:SetAttribute("oStO",Lg.OutdoorAmbient)Lg:SetAttribute("oStC",Lg.ClockTime)Lg:SetAttribute("oStF",Lg.FogEnd)Lg:SetAttribute("oStFC",Lg.FogColor)end
+    Lg.Brightness=1.4 Lg.Ambient=Color3.fromRGB(55,55,65)Lg.OutdoorAmbient=Color3.fromRGB(70,70,85)Lg.ClockTime=16.8 Lg.FogEnd=600 Lg.FogColor=Color3.fromRGB(70,75,90)Lg.GlobalShadows=true Lg.ShadowSoftness=.4
+    local cc=Instance.new("ColorCorrectionEffect",Lg)cc.Brightness=-.06 cc.Contrast=.28 cc.Saturation=-.15 cc.TintColor=Color3.fromRGB(180,190,210)table.insert(stormObjs,cc)
+    local bl=Instance.new("BloomEffect",Lg)bl.Intensity=.7 bl.Size=32 bl.Threshold=.9 table.insert(stormObjs,bl)
+    local at=Instance.new("Atmosphere",Lg)at.Density=.42 at.Offset=-.15 at.Color=Color3.fromRGB(90,95,110)at.Decay=Color3.fromRGB(40,45,60)at.Glare=.5 at.Haze=2.5 table.insert(stormObjs,at)
+    local sky=Instance.new("Sky",Lg)sky.SkyboxBk="rbxassetid://159454299"sky.SkyboxDn="rbxassetid://159454296"sky.SkyboxFt="rbxassetid://159454293"sky.SkyboxLf="rbxassetid://159454286"sky.SkyboxRt="rbxassetid://159454300"sky.SkyboxUp="rbxassetid://159454288"sky.SunAngularSize=0 sky.MoonAngularSize=0 sky.StarCount=0 sky.CelestialBodiesShown=false table.insert(stormObjs,sky)
+    local cl=Instance.new("Clouds",Lg)cl.Cover=.85 cl.Density=1 cl.Color=Color3.fromRGB(45,50,65)cl.Enabled=true table.insert(stormObjs,cl)
+end
+local function diStorm()
+    for _,o in ipairs(stormObjs)do pcall(function()o:Destroy()end)end stormObjs={}
+    local Lg=game:GetService("Lighting")
+    if Lg:GetAttribute("oStSv")then Lg.Brightness=Lg:GetAttribute("oStB")or 2 Lg.Ambient=Lg:GetAttribute("oStA")or Color3.fromRGB(70,70,70)Lg.OutdoorAmbient=Lg:GetAttribute("oStO")or Color3.fromRGB(128,128,128)Lg.ClockTime=Lg:GetAttribute("oStC")or 14 Lg.FogEnd=Lg:GetAttribute("oStF")or 100000 Lg.FogColor=Lg:GetAttribute("oStFC")or Color3.fromRGB(192,192,192)Lg:SetAttribute("oStSv",nil)end
+end
+tk(pages[2],"⛈️ Shader Bão Tố",function(s)if s then enStorm()else diStorm()end end)
+
+-- TAB 3
+tk(pages[3],"Định vị 3D",function(s)St.ESP=s if s then upE()else clrE()end end)
+R.RenderStepped:Connect(upE)
+tk(pages[3],"ESP Tia + Hộp 3D",function(s)St.BoxESP=s if s then upBox()else clrBox()end end)
+R.RenderStepped:Connect(upBox)
+tk(pages[3],"Aimbot FOV",function(s)
+    St.A=s F.Visible=s
+    if s then ac=R.RenderStepped:Connect(function()
+        if not St.A then return end
+        F.Position=UDim2.new(0,C.ViewportSize.X/2,0,C.ViewportSize.Y/2)F.Size=UDim2.new(0,FS,0,FS)aimT=gt()
+        if aimT and(U:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)or U.TouchEnabled)then C.CFrame=CFrame.new(C.CFrame.Position,aimT.Position)end
+    end)
+    elseif ac then ac:Disconnect()ac=nil aimT=nil end
+end)
+sl(pages[3],"FOV Size",FS,50,600,function(v)FS=v F.Size=UDim2.new(0,FS,0,FS)end)
+
+-- TAB 4
+tk(pages[4],"Tool TP",function(s)if s then gTP()else rTP()end end)
+local function tpP(p)
+    if not p or p==L or not p.Character then return false end
+    local h=p.Character:FindFirstChild("HumanoidRootPart")if not h then return false end
+    tp(h.Position+h.CFrame.LookVector*3+Vector3.new(0,3,0))return true
+end
+tk(pages[4],"TP tới người gần nhất",function(s)if s then
+    local m=L.Character and L.Character:FindFirstChild("HumanoidRootPart")if not m then return end
+    local b,bd=nil,math.huge
+    for _,p in ipairs(P:GetPlayers())do if p~=L and p.Character then local h=p.Character:FindFirstChild("HumanoidRootPart")if h then local d=(h.Position-m.Position).Magnitude if d<bd then bd=d b=p end end end end
+    if b then tpP(b)end
+end end)
+tk(pages[4],"TP tới người xa nhất",function(s)if s then
+    local m=L.Character and L.Character:FindFirstChild("HumanoidRootPart")if not m then return end
+    local b,bd=nil,0
+    for _,p in ipairs(P:GetPlayers())do if p~=L and p.Character then local h=p.Character:FindFirstChild("HumanoidRootPart")if h then local d=(h.Position-m.Position).Magnitude if d>bd then bd=d b=p end end end end
+    if b then tpP(b)end
+end end)
+
+local lf=Instance.new("Frame",pages[4])lf.Size=UDim2.new(1,-10,0,240)lf.BackgroundColor3=DK3 lf.BorderSizePixel=0 lf.LayoutOrder=#pages[4]:GetChildren()lf.ZIndex=53 cn(lf,UDim.new(0,12))
+local lt=Instance.new("TextLabel",lf)lt.Size=UDim2.new(1,-20,0,26)lt.Position=UDim2.new(0,10,0,6)lt.BackgroundTransparency=1 lt.Text="📍 DS Người chơi"lt.TextColor3=CR lt.Font=Enum.Font.GothamBold lt.TextSize=13 lt.TextXAlignment=Enum.TextXAlignment.Left lt.ZIndex=54
+local ls=Instance.new("ScrollingFrame",lf)ls.Size=UDim2.new(1,-16,1,-40)ls.Position=UDim2.new(0,8,0,34)ls.BackgroundTransparency=1 ls.BorderSizePixel=0 ls.ScrollBarThickness=4 ls.ScrollBarImageColor3=CR ls.CanvasSize=UDim2.new(0,0,0,0)ls.ZIndex=54
+local ll=Instance.new("UIListLayout",ls)ll.Padding=UDim.new(0,4)
+ll:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()ls.CanvasSize=UDim2.new(0,0,0,ll.AbsoluteContentSize.Y+8)end)
+local pB={}
+local function rL()
+    for _,b in pairs(pB)do pcall(function()b:Destroy()end)end pB={}
+    local n=0
+    for _,p in ipairs(P:GetPlayers())do if p~=L then n=n+1
+        local b=Instance.new("TextButton",ls)b.Size=UDim2.new(1,-8,0,32)b.BackgroundColor3=DK2 b.BackgroundTransparency=.3 b.Text=""b.AutoButtonColor=false b.LayoutOrder=n b.ZIndex=55 cn(b,UDim.new(0,8))st(b,CR,1)
+        local l=Instance.new("TextLabel",b)l.BackgroundTransparency=1 l.Size=UDim2.new(1,-12,1,0)l.Position=UDim2.new(0,10,0,0)l.Font=Enum.Font.GothamMedium l.Text=p.Name l.TextColor3=TX l.TextSize=13 l.TextXAlignment=Enum.TextXAlignment.Left l.ZIndex=56
+        b.MouseButton1Click:Connect(function()if tpP(p)then l.TextColor3=Color3.fromRGB(0,255,100)task.wait(.4)if l and l.Parent then l.TextColor3=TX end end end)
+        pB[p]=b
+    end end
+end
+rL()P.PlayerAdded:Connect(function()task.wait(.3)rL()end)P.PlayerRemoving:Connect(function()task.wait(.3)rL()end)
+local inf=Instance.new("Frame",pages[4])inf.Size=UDim2.new(1,-10,0,52)inf.BackgroundColor3=DK3 inf.BorderSizePixel=0 inf.LayoutOrder=#pages[4]:GetChildren()inf.ZIndex=53 cn(inf,UDim.new(0,12))
+local ib=Instance.new("TextBox",inf)ib.Size=UDim2.new(1,-100,1,-14)ib.Position=UDim2.new(0,8,0,7)ib.BackgroundColor3=DK2 ib.Text=""ib.PlaceholderText="Nhập tên..."ib.TextColor3=TX ib.PlaceholderColor3=Color3.fromRGB(150,100,110)ib.Font=Enum.Font.GothamMedium ib.TextSize=13 ib.TextXAlignment=Enum.TextXAlignment.Left ib.ClearTextOnFocus=false ib.ZIndex=54 cn(ib,UDim.new(0,8))st(ib,CR,1)
+local gb=Instance.new("TextButton",inf)gb.Size=UDim2.new(0,78,1,-14)gb.Position=UDim2.new(1,-86,0,7)gb.BackgroundColor3=CR gb.Text="TP"gb.TextColor3=Color3.new(1,1,1)gb.Font=Enum.Font.GothamBold gb.TextSize=13 gb.AutoButtonColor=false gb.ZIndex=54 cn(gb,UDim.new(0,8))
+gb.MouseButton1Click:Connect(function()
+    local nm=ib.Text if nm==""then return end
+    local t=P:FindFirstChild(nm)
+    if not t then for _,p in ipairs(P:GetPlayers())do if p~=L and string.find(string.lower(p.Name),string.lower(nm),1,true)then t=p break end end end
+    if t and t~=L and tpP(t)then gb.Text="✓"gb.BackgroundColor3=Color3.fromRGB(0,180,80)task.wait(.6)gb.Text="TP"gb.BackgroundColor3=CR
+    else gb.Text="✗"gb.BackgroundColor3=CB task.wait(.6)gb.Text="TP"gb.BackgroundColor3=CR end
+end)
+
+-- EVENTS
+local function hm()M.Visible=false I.Visible=true end
+local function sm()M.Visible=true I.Visible=false end
+MB.MouseButton1Click:Connect(hm)
+CBt.MouseButton1Click:Connect(function()
+    stF()clrE()clrBox()rTP()diSS()diDark()diStorm()killFlash()
+    if ac then ac:Disconnect()end
+    if St._af then St._af:Disconnect()end
+    S:Destroy()
+end)
+I.MouseButton1Click:Connect(sm)
+U.InputBegan:Connect(function(i,g)if g then return end if i.KeyCode==Enum.KeyCode.K then if M.Visible then hm()else sm()end end end)
+print("🦸 HERO V3 loaded - Full!")
