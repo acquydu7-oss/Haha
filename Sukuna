@@ -1,0 +1,538 @@
+-- ============ 👹 SUKUNA ============
+local P=game:GetService("Players")
+local T=game:GetService("TweenService")
+local R=game:GetService("RunService")
+local D=game:GetService("Debris")
+local LP=P.LocalPlayer
+local PG=LP:WaitForChild("PlayerGui")
+local Cam=workspace.CurrentCamera
+
+pcall(function()PG:FindFirstChild("SK"):Destroy()end)
+
+local S=Instance.new("ScreenGui",PG)
+S.Name="SK" S.ResetOnSpawn=false S.IgnoreGuiInset=true S.DisplayOrder=9
+
+-- UI MENU
+local icon=Instance.new("TextButton",S)
+icon.Size=UDim2.new(0,55,0,55) icon.Position=UDim2.new(0,20,.5,-27)
+icon.BackgroundColor3=Color3.fromRGB(30,5,10)
+icon.Text="👹" icon.TextScaled=true icon.TextColor3=Color3.fromRGB(255,80,80)
+icon.Font=Enum.Font.GothamBold icon.Draggable=true
+Instance.new("UICorner",icon).CornerRadius=UDim.new(1,0)
+local ist=Instance.new("UIStroke",icon)
+ist.Color=Color3.fromRGB(200,50,50) ist.Thickness=2
+
+local Mn=Instance.new("Frame",S)
+Mn.Size=UDim2.new(0,240,0,360) Mn.Position=UDim2.new(0,90,.5,-180)
+Mn.BackgroundColor3=Color3.fromRGB(15,5,10) Mn.BorderSizePixel=0
+Mn.Draggable=true Mn.Active=true
+Mn.ZIndex=10
+Instance.new("UICorner",Mn).CornerRadius=UDim.new(0,12)
+local mst=Instance.new("UIStroke",Mn)
+mst.Color=Color3.fromRGB(200,50,50) mst.Thickness=2
+
+local Ti=Instance.new("TextLabel",Mn)
+Ti.Size=UDim2.new(1,0,0,38) Ti.BackgroundColor3=Color3.fromRGB(50,10,15)
+Ti.Text="👹 SUKUNA 👹" Ti.TextColor3=Color3.fromRGB(255,80,80)
+Ti.TextScaled=true Ti.Font=Enum.Font.GothamBold
+Instance.new("UICorner",Ti).CornerRadius=UDim.new(0,12)
+
+local X=Instance.new("TextButton",Mn)
+X.Size=UDim2.new(0,24,0,24) X.Position=UDim2.new(1,-30,0,7)
+X.BackgroundColor3=Color3.fromRGB(200,30,30)
+X.Text="X" X.TextColor3=Color3.new(1,1,1)
+X.TextScaled=true X.Font=Enum.Font.GothamBold
+Instance.new("UICorner",X).CornerRadius=UDim.new(1,0)
+X.MouseButton1Click:Connect(function() Mn.Visible=false end)
+
+local Sc=Instance.new("ScrollingFrame",Mn)
+Sc.Size=UDim2.new(1,-16,1,-48) Sc.Position=UDim2.new(0,8,0,44)
+Sc.BackgroundTransparency=1 Sc.BorderSizePixel=0 Sc.ScrollBarThickness=4
+Sc.CanvasSize=UDim2.new() Sc.AutomaticCanvasSize=Enum.AutomaticSize.Y
+local La=Instance.new("UIListLayout",Sc) La.Padding=UDim.new(0,4)
+
+icon.MouseButton1Click:Connect(function() Mn.Visible=not Mn.Visible end)
+
+-- Helpers
+local function sec(t)
+    local s=Instance.new("TextLabel",Sc)
+    s.Size=UDim2.new(1,-8,0,22) s.BackgroundColor3=Color3.fromRGB(50,10,15)
+    s.Text="▬ "..t.." ▬" s.TextColor3=Color3.fromRGB(255,120,120)
+    s.TextScaled=true s.Font=Enum.Font.GothamBold
+    Instance.new("UICorner",s).CornerRadius=UDim.new(0,6)
+end
+local function btn(t,c,f)
+    local b=Instance.new("TextButton",Sc)
+    b.Size=UDim2.new(1,-8,0,32) b.BackgroundColor3=Color3.fromRGB(30,10,15)
+    b.Text=t b.TextColor3=c b.TextScaled=true
+    b.Font=Enum.Font.GothamBold b.AutoButtonColor=false
+    Instance.new("UICorner",b).CornerRadius=UDim.new(0,8)
+    local st=Instance.new("UIStroke",b)
+    st.Color=c st.Thickness=1.5 st.Transparency=.4
+    b.MouseButton1Click:Connect(function() pcall(f) end)
+end
+local function C()
+    local c=LP.Character if not c then return end
+    return c:FindFirstChild("HumanoidRootPart"),c:FindFirstChildOfClass("Humanoid")
+end
+local function P1(c,s,shape,mat)
+    local p=Instance.new("Part")
+    p.Size=s p.Shape=shape or Enum.PartType.Ball
+    p.Material=mat or Enum.Material.Neon
+    p.Color=c p.Anchored=true p.CanCollide=false p.CastShadow=false
+    p.Parent=workspace D:AddItem(p,3) return p
+end
+local function PE(p,c,s,r,sp)
+    local e=Instance.new("ParticleEmitter",p)
+    e.Texture="rbxassetid://243098098"
+    e.Color=ColorSequence.new(c) e.Size=NumberSequence.new(s,0)
+    e.Transparency=NumberSequence.new(0,1) e.Lifetime=NumberRange.new(.4,1)
+    e.Rate=r or 100 e.Speed=NumberRange.new(sp or 15,(sp or 15)*2)
+    e.SpreadAngle=Vector2.new(360,360)
+end
+local function FL(c,d)
+    local f=Instance.new("Frame",S)
+    f.Size=UDim2.new(1,0,1,0) f.BackgroundColor3=c
+    f.BackgroundTransparency=.4 f.BorderSizePixel=0 f.ZIndex=9999
+    T:Create(f,TweenInfo.new(d),{BackgroundTransparency=1}):Play()
+    D:AddItem(f,d+.2)
+end
+local function SH(i,d)
+    task.spawn(function()
+        local t=0
+        while t<d do
+            Cam.CFrame=Cam.CFrame*CFrame.new(
+                math.random(-100,100)/100*i,
+                math.random(-100,100)/100*i,0)
+            t=t+R.RenderStepped:Wait()
+        end
+    end)
+end
+local function RG(pos,c,sz)
+    local r=P1(c,Vector3.new(.3,1,1),Enum.PartType.Cylinder)
+    r.CFrame=CFrame.new(pos)*CFrame.Angles(0,0,math.rad(90))
+    T:Create(r,TweenInfo.new(1),{Size=Vector3.new(.3,sz,sz),Transparency=1}):Play()
+end
+local function BS(pos,c,n,sp)
+    for i=1,n do
+        task.spawn(function()
+            local p=P1(c,Vector3.new(2,2,2))
+            p.CFrame=CFrame.new(pos)
+            local d=Vector3.new(math.random(-1,1),math.random(-1,1),math.random(-1,1)).Unit
+            T:Create(p,TweenInfo.new(1),{
+                CFrame=CFrame.new(pos+d*(sp or 30)),
+                Size=Vector3.new(.1,.1,.1),Transparency=1
+            }):Play()
+        end)
+    end
+end
+local function GH()
+    local t={}
+    for _,p in ipairs(P:GetPlayers()) do
+        if p~=LP and p.Character then
+            local h=p.Character:FindFirstChildOfClass("Humanoid")
+            if h then t[#t+1]=h end
+        end
+    end
+    for _,v in ipairs(workspace:GetChildren()) do
+        local h=v:FindFirstChildOfClass("Humanoid")
+        if h and v~=LP.Character then t[#t+1]=h end
+    end
+    return t
+end
+local function DMG(pos,r,dmg,k)
+    for _,h in ipairs(GH()) do
+        local rt=h.Parent:FindFirstChild("HumanoidRootPart")
+        if rt and (rt.Position-pos).Magnitude<=r then
+            pcall(function()
+                h:TakeDamage(dmg)
+                if k then
+                    local b=Instance.new("BodyVelocity",rt)
+                    b.Velocity=(rt.Position-pos).Unit*k
+                    b.MaxForce=Vector3.new(1e5,1e5,1e5)
+                    D:AddItem(b,.3)
+                end
+            end)
+        end
+    end
+end
+local function SLASH(pos,size,color)
+    local s=P1(color,size,Enum.PartType.Block)
+    s.Transparency=.2 s.CFrame=CFrame.new(pos)*CFrame.Angles(
+        math.rad(math.random(0,360)),math.rad(math.random(0,360)),math.rad(math.random(0,360)))
+    T:Create(s,TweenInfo.new(.4),{Transparency=1,Size=s.Size*1.5}):Play()
+    D:AddItem(s,.5)
+end
+
+-- SKILLS
+local function Dismantle()
+    FL(Color3.fromRGB(255,50,50),.3)
+    local hd=C() if not hd then return end
+    local o=hd.Position local l=hd.CFrame.LookVector
+    for i=1,5 do
+        task.spawn(function()
+            task.wait(i*.08)
+            local s=P1(Color3.fromRGB(255,50,50),Vector3.new(6,.5,1),Enum.PartType.Block)
+            s.Transparency=.2 s.CFrame=CFrame.new(o+l*(5+i*3))
+            T:Create(s,TweenInfo.new(.5),{CFrame=s.CFrame+l*60,Transparency=1}):Play()
+            D:AddItem(s,.6)
+            for j=1,10 do
+                DMG(s.Position,8,80,0)
+                task.wait(.05)
+            end
+        end)
+    end
+    SH(2,.4)
+end
+
+local function Cleave()
+    local hd=C() if not hd then return end
+    FL(Color3.fromRGB(200,30,30),.4)
+    local l=hd.CFrame.LookVector
+    for i=1,10 do
+        task.spawn(function()
+            task.wait(i*.06)
+            local s=P1(Color3.fromRGB(255,80,80),Vector3.new(8,.4,.6),Enum.PartType.Block)
+            s.Transparency=.1
+            s.CFrame=hd.CFrame*CFrame.new(math.random(-4,4),math.random(-2,4),math.random(-4,4))
+            local targetCF = CFrame.new(s.Position + l * 60) * CFrame.Angles(math.rad(math.random(-30,30)), math.rad(math.random(-30,30)), math.rad(math.random(-30,30)))
+            T:Create(s,TweenInfo.new(.3),{CFrame=targetCF, Transparency=1}):Play()
+            task.spawn(function()
+                local t=0
+                while t<0.3 and s.Parent do
+                    DMG(s.Position,12,150,80)
+                    t=t+R.RenderStepped:Wait()
+                end
+            end)
+            D:AddItem(s,.4)
+        end)
+    end
+    SH(3,.8)
+end
+
+local function FireArrow()
+    FL(Color3.fromRGB(255,150,50),.4)
+    local hd=C() if not hd then return end
+    local charge=P1(Color3.fromRGB(255,80,30),Vector3.new(1,1,1))
+    charge.CFrame=hd.CFrame*CFrame.new(0,0,-5)
+    T:Create(charge,TweenInfo.new(.4),{Size=Vector3.new(10,10,10),Transparency=0.2}):Play()
+    PE(charge,Color3.fromRGB(255,100,30),12,500,20)
+    local cl=Instance.new("PointLight",charge)
+    cl.Color=Color3.fromRGB(255,100,30) cl.Range=40 cl.Brightness=10
+    for i=1,6 do
+        task.spawn(function()
+            local spark=P1(Color3.fromRGB(255,200,50),Vector3.new(.6,.6,3),Enum.PartType.Block)
+            local angle=(i/6)*math.pi*2
+            while charge.Parent do
+                local radius=6 + math.random(-1,1)
+                spark.CFrame=charge.CFrame*CFrame.new(math.cos(angle)*radius, math.sin(angle)*radius, 0)*CFrame.Angles(0,0,angle)
+                angle=angle+0.15
+                R.Heartbeat:Wait()
+            end
+        end)
+    end
+    task.wait(.5)
+    charge:Destroy()
+    local arrow=P1(Color3.fromRGB(255,80,30),Vector3.new(4,4,10),Enum.PartType.Block)
+    arrow.Transparency=.1 arrow.CFrame=hd.CFrame*CFrame.new(0,0,-8)
+    PE(arrow,Color3.fromRGB(255,100,30),8,500,40)
+    local light=Instance.new("PointLight",arrow)
+    light.Color=Color3.fromRGB(255,100,30) light.Range=40 light.Brightness=10
+    local l=hd.CFrame.LookVector
+    T:Create(arrow,TweenInfo.new(1.5),{CFrame=CFrame.new(arrow.Position+l*300)}):Play()
+    task.spawn(function()
+        local t=0
+        while t<1.5 and arrow.Parent do
+            DMG(arrow.Position,15,150,200)
+            task.wait(.05) t=t+.05
+        end
+    end)
+    task.wait(1.5)
+    BS(arrow.Position,Color3.fromRGB(255,100,30),40,50)
+    DMG(arrow.Position,40,300,500)
+    RG(arrow.Position,Color3.fromRGB(255,80,30),30)
+    FL(Color3.fromRGB(255,150,50),.5)
+    SH(4,1) arrow:Destroy()
+end
+
+local function Rush()
+    local hd=C() if not hd then return end
+    FL(Color3.fromRGB(150,30,30),.2) SH(2,.5)
+    local sp=hd.Position 
+    local l=hd.CFrame.LookVector
+    local ep=sp+l*80
+    local bv=Instance.new("BodyVelocity",hd)
+    bv.Velocity=l*200
+    bv.MaxForce=Vector3.new(1e5,0,1e5)
+    bv.P=1e5
+    D:AddItem(bv,.4)
+    PE(hd,Color3.fromRGB(200,50,50),4,200,20)
+    for i=1,20 do
+        local p=sp+l*(i*4)
+        DMG(p,10,200,300) RG(p,Color3.fromRGB(150,30,30),6)
+        task.wait(.02)
+    end
+    BS(ep,Color3.fromRGB(200,50,50),30,30)
+    DMG(ep,20,250,400)
+end
+
+local DomainActive=false
+local function Domain()
+    if DomainActive then return end
+    DomainActive=true
+    local hd,hum=C() if not hd then return end
+    local o=hd.Position
+    local dome
+    local running=true
+    local domainParts = {}
+
+    local function DP1(c,s,shape,mat)
+        local p=Instance.new("Part")
+        p.Size=s p.Shape=shape or Enum.PartType.Ball
+        p.Material=mat or Enum.Material.Neon
+        p.Color=c p.Anchored=true p.CanCollide=false p.CastShadow=false
+        p.Parent=workspace
+        table.insert(domainParts, p)
+        return p
+    end
+
+    task.spawn(function()
+        local f=Cam.FieldOfView
+        T:Create(Cam,TweenInfo.new(.8),{FieldOfView=50}):Play()
+        task.wait(1)
+        T:Create(Cam,TweenInfo.new(.5),{FieldOfView=f}):Play()
+    end)
+    FL(Color3.fromRGB(0,0,0),.6) task.wait(.3)
+    hd.Anchored=true
+    if hum then hum.WalkSpeed=0 end
+
+    task.spawn(function()
+        local seal=DP1(Color3.fromRGB(255,50,50),Vector3.new(1.5,1.5,1.5))
+        seal.Transparency=.3
+        local l=Instance.new("PointLight",seal)
+        l.Color=Color3.fromRGB(255,50,50) l.Range=15 l.Brightness=8
+        PE(seal,Color3.fromRGB(255,80,30),2,200,5)
+        for i=1,20 do
+            if not seal.Parent then break end
+            local _,h2=C()
+            if h2 then seal.CFrame=h2.CFrame*CFrame.new(0,0,-1) end
+            seal.Size=seal.Size+Vector3.new(.15,.15,.15)
+            task.wait(.05)
+        end
+        seal:Destroy()
+    end)
+    task.wait(.6)
+    FL(Color3.fromRGB(150,0,0),.4) SH(5,1) task.wait(.4)
+
+    for i=1,3 do
+        task.spawn(function() RG(o,Color3.fromRGB(255,30,30),200) end)
+        task.wait(.2)
+    end
+    task.wait(.6)
+    FL(Color3.new(1,1,1),.3) SH(6,1) task.wait(.5)
+
+    task.spawn(function()
+        local floor=DP1(Color3.fromRGB(25,8,8),Vector3.new(.5,1,1),
+            Enum.PartType.Cylinder,Enum.Material.Slate)
+        floor.CFrame=CFrame.new(o-Vector3.new(0,3,0))*CFrame.Angles(0,0,math.rad(90))
+        T:Create(floor,TweenInfo.new(1,Enum.EasingStyle.Back),{
+            Size=Vector3.new(.5,140,140)
+        }):Play()
+        for i=1,3 do
+            local r=DP1(Color3.fromRGB(255,50,30),Vector3.new(.4,1,1),
+                Enum.PartType.Cylinder)
+            r.Transparency=.3
+            r.CFrame=CFrame.new(o-Vector3.new(0,2.5+i*.1,0))*CFrame.Angles(0,0,math.rad(90))
+            local radius=40+i*25
+            T:Create(r,TweenInfo.new(1,Enum.EasingStyle.Back),{
+                Size=Vector3.new(.4,radius,radius)
+            }):Play()
+            task.spawn(function()
+                local s=(i%2==0) and 1 or -1
+                while r.Parent do
+                    r.CFrame=r.CFrame*CFrame.Angles(0,0,math.rad(s))
+                    R.Heartbeat:Wait()
+                end
+            end)
+        end
+    end)
+
+    for i=1,12 do
+        task.spawn(function()
+            task.wait(i*.04)
+            local a=(i/12)*math.pi*2
+            local d=45
+            local pos=o+Vector3.new(math.cos(a)*d,0,math.sin(a)*d)
+            local p=DP1(Color3.fromRGB(50,10,10),Vector3.new(5,1,5),
+                Enum.PartType.Block,Enum.Material.Slate)
+            p.CFrame=CFrame.new(pos+Vector3.new(0,30,0))
+            T:Create(p,TweenInfo.new(.6,Enum.EasingStyle.Back),{
+                Size=Vector3.new(5,60,5)
+            }):Play()
+            local top=DP1(Color3.fromRGB(80,15,15),Vector3.new(1,1,1),
+                Enum.PartType.Block,Enum.Material.Slate)
+            top.CFrame=CFrame.new(pos+Vector3.new(0,62,0))*CFrame.Angles(0,math.rad(45),0)
+            T:Create(top,TweenInfo.new(.6,Enum.EasingStyle.Back),{
+                Size=Vector3.new(10,3,10)
+            }):Play()
+            local fire=DP1(Color3.fromRGB(255,60,30),Vector3.new(6,6,6))
+            fire.CFrame=CFrame.new(pos+Vector3.new(0,65,0))
+            PE(fire,Color3.fromRGB(255,100,30),10,300,15)
+            local fl=Instance.new("PointLight",fire)
+            fl.Color=Color3.fromRGB(255,80,30) fl.Range=35 fl.Brightness=8
+        end)
+    end
+    task.wait(.8)
+
+    dome=DP1(Color3.fromRGB(100,10,10),Vector3.new(1,1,1),
+        Enum.PartType.Ball,Enum.Material.ForceField)
+    dome.Transparency=.6 dome.CFrame=CFrame.new(o)
+    T:Create(dome,TweenInfo.new(1,Enum.EasingStyle.Back),{
+        Size=Vector3.new(130,130,130)
+    }):Play()
+    local dl=Instance.new("PointLight",dome)
+    dl.Color=Color3.fromRGB(255,50,30) dl.Range=250 dl.Brightness=0
+    T:Create(dl,TweenInfo.new(1),{Brightness=12}):Play()
+
+    task.spawn(function()
+        local w=DP1(Color3.fromRGB(150,30,20),Vector3.new(80,.1,80),
+            Enum.PartType.Block,Enum.Material.Glass)
+        w.Transparency=.7
+        w.CFrame=CFrame.new(o-Vector3.new(0,2.8,0))
+    end)
+
+    task.spawn(function()
+        local b=DP1(Color3.fromRGB(255,100,30),Vector3.new(12,1,12),
+            Enum.PartType.Block)
+        b.Transparency=.3
+        b.CFrame=CFrame.new(o+Vector3.new(0,100,0))
+        T:Create(b,TweenInfo.new(1.2,Enum.EasingStyle.Back),{
+            Size=Vector3.new(30,200,30)
+        }):Play()
+        task.spawn(function()
+            while b.Parent do
+                b.CFrame=b.CFrame*CFrame.Angles(0,math.rad(1),0)
+                R.Heartbeat:Wait()
+            end
+        end)
+    end)
+
+    for i=1,20 do
+        task.spawn(function()
+            task.wait(math.random(0,15)/10)
+            local p=DP1(Color3.fromRGB(255,200,100),Vector3.new(1.5,2,.2),
+                Enum.PartType.Block,Enum.Material.SmoothPlastic)
+            p.CFrame=CFrame.new(o+Vector3.new(
+                math.random(-50,50),5,math.random(-50,50)))
+                *CFrame.Angles(
+                    math.rad(math.random(-30,30)),
+                    math.rad(math.random(0,360)),
+                    math.rad(math.random(-30,30)))
+            T:Create(p,TweenInfo.new(5),{
+                CFrame=p.CFrame+Vector3.new(
+                    math.random(-10,10),80,math.random(-10,10))
+            }):Play()
+        end)
+    end
+    SH(3,2)
+
+    hd.Anchored=false
+    if hum then hum.WalkSpeed=16 end
+
+    task.spawn(function()
+        local t=0
+        local baseR=200
+        local baseS=20
+        while running and t<10 and hd and hd.Parent do
+            t=t+R.RenderStepped:Wait()
+            local radius=baseR+t*20
+            local slashSz=baseS+math.min(t*2,60)
+            local ir=math.floor(radius)
+            for i=1,8 do
+                task.spawn(function()
+                    SLASH(o+Vector3.new(
+                        math.random(-ir,ir),
+                        math.random(-15,20),
+                        math.random(-ir,ir)),
+                        Vector3.new(slashSz+math.random(0,15),.5,.8),
+                        Color3.fromRGB(255,50,50))
+                end)
+            end
+            DMG(o,radius,50,0)
+            SH(1.2,.05)
+        end
+    end)
+
+    task.wait(10)
+    running=false
+    DomainActive=false
+    FL(Color3.fromRGB(150,0,0),1)
+    for _, p in ipairs(domainParts) do
+        if p and p.Parent then p:Destroy() end
+    end
+    if hum then hum.WalkSpeed=16 end
+    if hd and hd.Parent then hd.Anchored=false end
+end
+
+-- ============ ⚔️ HOTBAR (KHÔNG HỒI CHIÊU) ============
+local hotbar = Instance.new("Frame", S)
+hotbar.Name = "Hotbar"
+hotbar.Size = UDim2.new(0, 320, 0, 60)
+hotbar.Position = UDim2.new(0.5, -160, 1, -75)
+hotbar.BackgroundTransparency = 1
+hotbar.ZIndex = 5
+
+local hbLayout = Instance.new("UIListLayout", hotbar)
+hbLayout.FillDirection = Enum.FillDirection.Horizontal
+hbLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+hbLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+hbLayout.Padding = UDim.new(0, 8)
+
+local function createSkillSlot(emoji, color, func)
+    local slot = Instance.new("TextButton", hotbar)
+    slot.Size = UDim2.new(0, 55, 0, 55)
+    slot.BackgroundColor3 = Color3.fromRGB(20, 5, 10)
+    slot.Text = emoji
+    slot.TextScaled = true
+    slot.TextColor3 = color
+    slot.Font = Enum.Font.GothamBold
+    slot.AutoButtonColor = false
+    slot.ZIndex = 6
+    
+    Instance.new("UICorner", slot).CornerRadius = UDim.new(0, 10)
+    
+    local stroke = Instance.new("UIStroke", slot)
+    stroke.Color = color
+    stroke.Thickness = 2
+    
+    -- Bấm là ra chiêu ngay, KHÔNG hồi chiêu
+    slot.MouseButton1Click:Connect(function()
+        task.spawn(func)
+    end)
+end
+
+createSkillSlot("🗡️", Color3.fromRGB(255,100,100), Dismantle)
+createSkillSlot("🩸", Color3.fromRGB(255,50,50), Cleave)
+createSkillSlot("🔥", Color3.fromRGB(255,150,80), FireArrow)
+createSkillSlot("⚡", Color3.fromRGB(200,80,80), Rush)
+createSkillSlot("👹", Color3.fromRGB(255,30,30), Domain)
+
+-- BUILD MENU
+sec("CƠ BẢN")
+btn("🗡️ DISMANTLE",Color3.fromRGB(255,100,100),Dismantle)
+btn("🩸 CLEAVE",Color3.fromRGB(255,50,50),Cleave)
+btn("🔥 FIRE ARROW",Color3.fromRGB(255,150,80),FireArrow)
+btn("⚡ RUSH",Color3.fromRGB(200,80,80),Rush)
+btn("👹 DOMAIN",Color3.fromRGB(255,30,30),Domain)
+sec("TIỆN ÍCH")
+btn("🔄 RESET",Color3.fromRGB(255,150,100),function()
+    local c=LP.Character
+    if c then
+        local h=c:FindFirstChildOfClass("Humanoid")
+        if h then h.Health=0 end
+    end
+end)
+btn("❌ XÓA UI",Color3.fromRGB(255,80,80),function() S:Destroy() end)
+
+print"[SUKUNA] Loaded 👹"
+FL(Color3.fromRGB(200,50,50),.8)
